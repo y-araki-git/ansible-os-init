@@ -1,0 +1,101 @@
+---
+
+### Debian
+
+- name:    install nslcd for Debian
+  become:  yes
+  package: name=nslcd state={{ package_state }}
+  when:    ansible_os_family == 'Debian'
+
+- name:    update nslcd.conf for Debian
+  become:  yes
+  template: src=templates/ldap/nslcd.conf.debian.j2 dest=/etc/nslcd.conf
+  when:    ansible_os_family == 'Debian'
+
+- name:    update nsswitch.conf for Debian
+  become:  yes
+  template: src=templates/ldap/nsswitch.conf.debian.j2 dest=/etc/nsswitch.conf
+  when:    ansible_os_family == 'Debian'
+
+- name:    check /etc/pam/sshd contains pam_smkhomedir.so
+  become:  yes
+  always_run: yes
+  shell:   grep 'session    required     pam_mkhomedir.so skel=/etc/skel/ umask=0022' /etc/pam.d/sshd
+  register: checkpam
+  failed_when: checkpam.rc not in [0, 1]
+  changed_when: False
+  when:    ansible_os_family == 'Debian'
+
+- name:    update pam sshd for Debian
+  become:  yes
+  lineinfile: dest=/etc/pam.d/sshd line="session    required     pam_mkhomedir.so skel=/etc/skel/ umask=0022"
+  when:    ansible_os_family == 'Debian' and checkpam.rc == 1
+
+- name:    start nslcd, nscd service for Debian
+  become:  yes
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - nslcd
+    - nscd
+  when:    ansible_os_family == 'Debian'
+
+### CentOS
+
+- name:    install nss-pam-ldapd oddjob-mkhomedir openldap-clients for CentOS
+  become:  yes
+  package: name={{ item }} state={{ package_state }}
+  with_items:
+    - nss-pam-ldapd
+    - oddjob-mkhomedir
+    - openldap-clients
+  when:    ansible_os_family == "RedHat"
+
+- name:    start oddjobd service for CentOS
+  become:  yes
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+    - oddjobd
+  when:    ansible_os_family == "RedHat"
+
+- name:  exec authconfig and update nslcd.conf for CentOS7
+  become: yes
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: templates/ldap/system-auth.centos7.j2 , dest: /etc/pam.d/system-auth }
+    - { src: templates/ldap/password-auth.centos7.j2 , dest: /etc/pam.d/password-auth }
+    - { src: templates/ldap/fingerprint-auth.centos7.j2 , dest: /etc/pam.d/fingerprint-auth }
+    - { src: templates/ldap/smartcard-auth.centos7.j2 , dest: /etc/pam.d/smartcard-auth }
+    - { src: templates/ldap/nsswitch.conf.centos7.j2 , dest: /etc/nsswitch.conf }
+    - { src: templates/ldap/ldap.conf.centos7.j2 , dest: /etc/openldap/ldap.conf }
+    - { src: templates/ldap/nslcd.conf.centos7.j2 , dest: /etc/nslcd.conf }
+  when:    ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+  notify:  restart nslcd messagebus oddjobd nscd service for CentOS
+
+- name:  exec authconfig and update nslcd.conf for CentOS6
+  become: yes
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: templates/ldap/system-auth.centos6.j2 , dest: /etc/pam.d/system-auth }
+    - { src: templates/ldap/password-auth.centos6.j2 , dest: /etc/pam.d/password-auth }
+    - { src: templates/ldap/fingerprint-auth.centos6.j2 , dest: /etc/pam.d/fingerprint-auth }
+    - { src: templates/ldap/smartcard-auth.centos6.j2 , dest: /etc/pam.d/smartcard-auth }
+    - { src: templates/ldap/nsswitch.conf.centos6.j2 , dest: /etc/nsswitch.conf }
+    - { src: templates/ldap/ldap.conf.centos6.j2 , dest: /etc/openldap/ldap.conf }
+    - { src: templates/ldap/nslcd.conf.centos6.j2 , dest: /etc/nslcd.conf }
+  when:    ansible_os_family == "RedHat" and ansible_distribution_major_version == "6"
+  notify:  restart nslcd messagebus oddjobd nscd service for CentOS
+
+### Common
+
+- name:    check /etc/sudoers contains ops
+  become:  yes
+  always_run: yes
+  shell:   "grep '%ops    ALL=(ALL) NOPASSWD: ALL' /etc/sudoers"
+  register: sudoers
+  failed_when: sudoers.rc not in [0, 1]
+  changed_when: False
+
+- name:    add ops to sudoers
+  become:  yes
+  lineinfile: "dest=/etc/sudoers line='%ops    ALL=(ALL) NOPASSWD: ALL'"
+  when:    sudoers.rc == 1

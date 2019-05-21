@@ -1,0 +1,18 @@
+---
+- name: update grub
+  become: yes
+  command: update-grub
+
+- name: stop apt-daily.service
+  become: yes
+  service: name=apt-daily.service state=stopped enabled=no
+
+- name: stop apt-daily.timer
+  become: yes
+  service: name=apt-daily.timer state=stopped enabled=no
+
+- include: tuned.yml
+  tags: tuned
+
+- include: ldap.yml
+  tags: ldap

@@ -1,0 +1,14 @@
+---
+- hosts: init
+  gather_facts: no
+  tasks:
+    - name: bootstrap for Ubuntu, install python 2.7 to run ansible
+      raw: sudo apt-get update -qq && sudo apt-get install -qq python2.7 && sudo apt-get install -qq python-minimal
+      when:  ansible_ssh_user == 'ubuntu'
+
+- hosts: init
+  vars_files:
+    - vars/{{ stage }}/init.yml
+  roles:
+    - init
+

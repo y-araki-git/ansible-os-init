@@ -1,0 +1,57 @@
+---
+- name:    Package install /  curl
+  become:  yes
+  package: name=curl state={{ package_state }}
+
+- name:    Package install / unzip
+  become:  yes
+  package: name=unzip  state={{ package_state }}
+
+- name:    Package Install / jq
+  become:  yes
+  apt:     name=jq state={{ package_state }}
+  when:    ansible_os_family == 'Debian'
+
+- name:    Package Install / jq
+  become:  yes
+  yum:     name=jq state={{ package_state }} enablerepo=epel
+  when:    ansible_os_family == 'RedHat'
+  
+- name:    Package install / git
+  become:  yes
+  package: name=git state={{ package_state }}
+
+- name:    Package install / telnet
+  become:  yes
+  package: name=telnet state={{ package_state }}
+
+- name:    Package install / dns utils
+  become:  yes
+  package: name=dnsutils state={{ package_state }}
+  when:    ansible_os_family == 'Debian'
+
+- name:    Package install / dns utils
+  become:  yes
+  package: name=bind-utils state={{ package_state }}
+  when:    ansible_os_family == 'RedHat'
+
+- name:    Package install / debian-goodies
+  become:  yes
+  package: name=debian-goodies state={{ package_state }}
+  when:    ansible_os_family == 'Debian'
+
+- name:    Package install / sysstat
+  become:  yes
+  package: name=sysstat state={{ package_state }}
+
+- name:    Package install / dstat
+  become:  yes
+  package: name=dstat state={{ package_state }}
+
+- name:    Package install / screen
+  become:  yes
+  package: name=screen state={{ package_state }} enablerepo=epel
+
+
+
+

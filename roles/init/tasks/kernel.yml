@@ -1,0 +1,25 @@
+---
+- name: set vm.overcommit_memory
+  become:  yes
+  sysctl:
+    name: vm.overcommit_memory
+    value: 1
+    state: present
+  when:    ansible_os_family == 'Debian' or ansible_distribution_major_version == "6"
+ 
+- name: set net.core.somaxconn
+  become:  yes
+  sysctl:
+    name: net.core.somaxconn
+    value: 1024
+    state: present
+  when:    ansible_os_family == 'Debian' or ansible_distribution_major_version == "6"
+ 
+- name: set vm.swappiness
+  become:  yes
+  sysctl:
+    name: vm.swappiness
+    value: 10
+    state: present
+  when:    ansible_os_family == 'Debian' or ansible_distribution_major_version == "6"
+

@@ -1,0 +1,21 @@
+---
+- name: set openfile limit
+  become: yes
+  blockinfile:
+    path: /etc/security/limits.conf
+    insertbefore: "# End of file"
+    content: |
+      * soft nofile 65535
+      * hard nofile 65535
+
+- name: create systemd configration directory
+  become: yes
+  file: path=/etc/systemd/system.conf.d/ state=directory
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+
+- name: create systemd limit configration file
+  become: yes
+  template:
+    src=templates/systemd/limits.conf.j2
+    dest=/etc/systemd/system.conf.d/limits.conf
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"

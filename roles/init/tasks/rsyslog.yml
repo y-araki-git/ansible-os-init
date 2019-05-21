@@ -1,0 +1,10 @@
+- name:    filtering systemd cron message for CentOS 7
+  become:  yes
+  template: src=templates/rsyslog/systemd_cron.conf.centos7.j2 dest=/etc/rsyslog.d/systemd_cron.conf
+  when:    ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7"
+
+- name:    restart rsyslog service for CentOS7
+  become:  yes
+  service: name=rsyslog state=restarted enabled=yes
+  when:    ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+

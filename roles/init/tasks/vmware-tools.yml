@@ -1,0 +1,4 @@
+---
+- name:      enable timesync of vmware-tools 
+  become:    yes
+  command:   "vmware-toolbox-cmd timesync enable"

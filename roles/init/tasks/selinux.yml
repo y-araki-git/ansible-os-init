@@ -1,0 +1,5 @@
+---
+- name: disable selinux
+  become: yes
+  selinux: state=disabled
+  when: ansible_os_family == "RedHat"

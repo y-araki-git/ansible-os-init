@@ -1,0 +1,43 @@
+---
+- name: disable apparmor
+  become: yes
+  replace: 
+    dest: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX=""'
+    replace: 'GRUB_CMDLINE_LINUX="apparmor=0"'
+  notify:
+    - update grub
+  when: ansible_distribution == 'Ubuntu'
+
+- name: stop auto security update 50unattended-upgrades
+  become: yes
+  replace: 
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    regexp: '{{ item.regexp }}' 
+    replace: '{{ item.replace }}'
+  with_items:
+    - regexp: '^\t\"\${distro_id}:\${distro_codename}\";'
+      replace: '//\t"${distro_id}:${distro_codename}";'
+    - regexp: '^\t\"\${distro_id}:\${distro_codename}-security\";'
+      replace: '//\t"${distro_id}:${distro_codename}-security";'
+  notify:
+    - stop apt-daily.service
+    - stop apt-daily.timer
+  when: ansible_distribution == 'Ubuntu'
+
+- name: stop auto security update 20auto-upgrades
+  become: yes
+  replace: 
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    regexp: '{{ item.regexp }}' 
+    replace: '{{ item.replace }}'
+  with_items:
+    - regexp: '^APT::Periodic::Update-Package-Lists \"1\";'
+      replace: 'APT::Periodic::Update-Package-Lists "0";'
+    - regexp: '^APT::Periodic::Unattended-Upgrade \"1\";'
+      replace: 'APT::Periodic::Unattended-Upgrade "0";'
+  notify:
+    - stop apt-daily.service
+    - stop apt-daily.timer
+  when: ansible_distribution == 'Ubuntu'
+

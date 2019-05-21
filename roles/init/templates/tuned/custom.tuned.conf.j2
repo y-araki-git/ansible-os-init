@@ -1,0 +1,23 @@
+#
+# tuned configuration
+#
+
+[main]
+include=custom-base
+ 
+[sysctl]
+{% if 'api' in group_names %}
+# apiサーバ用設定
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_fin_timeout = 30
+net.core.somaxconn = 65535
+{% endif %}
+{% if 'db' in group_names %}
+# dbサーバ用設定
+ 
+{% endif %}
+{% if 'cache' in group_names %}
+# cacheサーバ用設定
+ 
+{% endif %}

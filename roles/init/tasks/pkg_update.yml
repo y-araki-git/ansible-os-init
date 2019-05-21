@@ -1,0 +1,20 @@
+---
+- name:   yum clean
+  become: yes
+  shell:  yum clean all
+  when:   ansible_os_family == 'RedHat'
+  
+- name:   yum update
+  become: yes
+  yum:    name=* state=latest
+  when:   ansible_os_family == 'RedHat'
+  
+- name:   apt-get update
+  become: yes
+  apt:    update_cache=yes
+  when:   ansible_os_family == 'Debian'
+
+- name:   apt-get dist-upgrade
+  become: yes
+  apt:    upgrade=dist
+  when:   ansible_os_family == 'Debian'

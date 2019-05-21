@@ -1,0 +1,5 @@
+---
+- name: change /etc/hostname file 
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"

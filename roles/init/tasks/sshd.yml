@@ -1,0 +1,8 @@
+---
+- name:      set PasswordAuthentication yes 
+  become:    yes
+  replace:   dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication no" replace="PasswordAuthentication yes"
+
+- name:      reload sshd service
+  become:    yes
+  service:   name=sshd state=reloaded 

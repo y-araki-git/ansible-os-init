@@ -1,0 +1,7 @@
+---
+- name: delete root public keys
+  become: yes
+  lineinfile:
+    path: /root/.ssh/authorized_keys
+    state: absent
+    regexp: '^ssh-rsa'

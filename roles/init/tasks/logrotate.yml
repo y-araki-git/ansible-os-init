@@ -1,0 +1,10 @@
+---
+- name:     update rsyslog logroatet for Debian
+  become:   yes
+  template: src=templates/logrotate/rsyslog.conf.debian.j2 dest=/etc/logrotate.d/rsyslog
+  when:     ansible_distribution == 'Debian'
+
+- name:     activate logrotate conf
+  become:   yes
+  shell:    logrotate /etc/logrotate.conf
+  when:     ansible_distribution == 'Debian'

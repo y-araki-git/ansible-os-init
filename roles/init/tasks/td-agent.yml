@@ -1,0 +1,89 @@
+---
+- name: create repo
+  become: yes
+  yum_repository:
+    file: td
+    description: TreasureData
+    name: treasuredata
+    baseurl: http://packages.treasuredata.com/2/redhat/$releasever/$basearch
+    gpgcheck: 1
+    gpgkey: https://packages.treasuredata.com/GPG-KEY-td-agent
+
+- name: import td-agent key
+  become: yes
+  rpm_key:
+    key: https://packages.treasuredata.com/GPG-KEY-td-agent
+
+- name: install td-agent
+  become: yes
+  yum:
+    name: td-agent-2.3.4-0.el7.x86_64
+    state: present
+
+- name: install plugin of td-agent
+  become: yes
+  gem:
+    name: '{{ item }}'
+    executable: /opt/td-agent/embedded/bin/gem
+    user_install: no
+    state: latest
+  with_items:
+    - fluent-plugin-forest
+
+- name: create td-agent include directory
+  become: yes
+  file:
+    path: /etc/td-agent/config.d
+    state: directory
+
+- name: create td-agent include directory
+  become: yes
+  file:
+    path: /var/log/td-agent/pos/
+    state: directory
+
+- name: change init script of td-agent
+  become: yes
+  replace:
+    name: /etc/init.d/td-agent
+    regexp: '{{ item.regexp }}'
+    replace: '{{ item.replace }}'
+    backup: yes
+  with_items:
+    - regexp: '^TD_AGENT_USER=td-agent$'
+      replace: 'TD_AGENT_USER=root'
+    - regexp: '^TD_AGENT_GROUP=td-agent$'
+      replace: 'TD_AGENT_GROUP=root'
+
+- name: daemon reload
+  become: yes
+  shell: "systemctl daemon-reload"
+
+- name: restart td-agent service
+  become: yes
+  service:
+    name: td-agent
+    state: restarted
+    enabled: yes
+
+- name: change config of logrotate
+  become: yes
+  replace:
+    name: /etc/logrotate.d/td-agent
+    regexp: '{{ item.regexp }}'
+    replace: '{{ item.replace }}'
+  with_items:
+    - regexp: 'daily'
+      replace: 'weekly'
+    - regexp: 'rotate 30'
+      replace: 'rotate 4'
+
+- name: Reflecting logrotate
+  become: yes
+  shell: 'logrotate /etc/logrotate.d/td-agent'
+
+- name: stop td-agent service
+  become: yes
+  service:
+    name: td-agent
+    state: stopped

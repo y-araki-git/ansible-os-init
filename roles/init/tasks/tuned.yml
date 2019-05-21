@@ -1,0 +1,35 @@
+---
+ 
+- name: create custom-profile directory
+  become: yes
+  file: path=/etc/tuned/custom-profile state=directory
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+  
+- name: create custom-profile
+  become: yes
+  template:
+    src=templates/tuned/custom.tuned.conf.j2
+    dest=/etc/tuned/custom-profile/tuned.conf
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+  notify: change tuned profile
+  
+- name: create custom-base directory
+  become: yes
+  file: path=/etc/tuned/custom-base state=directory
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+  
+- name: create custom-base profile
+  become: yes
+  template:
+    src=templates/tuned/custom-base.tuned.conf.j2
+    dest=/etc/tuned/custom-base/tuned.conf
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+  notify: change tuned profile
+
+- name: create logrotate configuration file
+  become: yes
+  template:
+    src=templates/tuned/logrotate.j2
+    dest=/etc/logrotate.d/tuned
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+

@@ -1,0 +1,33 @@
+---
+- name:    add group
+  become:  yes
+  group: name={{ item.group }} gid={{ item.gid }}
+  with_items: 
+    "{{ users }}"
+
+- name:    add user
+  become:  yes
+  user: name={{ item.name }} uid={{ item.uid }} group={{ item.group }}
+  with_items:
+    "{{ users }}"
+
+- name:    set password
+  become:  yes
+  user: name={{ item.name }} password={{ item.password }}
+  when: item.password is defined
+  with_items:
+    "{{ users }}"
+
+- name:    add sudoers file
+  become:  yes
+  template: src=templates/users/sudoers.j2 dest=/etc/sudoers.d/{{ item.name }}
+  when: item.sudo is defined
+  with_items:
+    "{{ users }}"
+
+- name:    set authorized key
+  become:  yes
+  authorized_key: user={{ item.name }} key={{ lookup('file', 'files/users/public_keys/{{ item.name }}') }}
+  when: item.key is defined
+  with_items:
+    "{{ users }}"

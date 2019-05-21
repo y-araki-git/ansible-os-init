@@ -1,0 +1,32 @@
+---
+- name: Check TimeZone
+  always_run: yes
+  command: date 
+  register: result_date
+
+- name: Set TimeZone for Debian or CentOS7
+  become: yes
+  always_run: yes
+  command: timedatectl set-timezone {{ timezone }}
+  when: result_date.stdout.find('{{ timezone_abbr }}') == -1 and
+        ((ansible_os_family == "RedHat" and ansible_distribution_major_version == "7") or
+         (ansible_os_family == "Debian")) 
+
+- name: Set /etc/localtime for CentOS6
+  become: yes
+  always_run: yes
+  command: cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime
+  when: result_date.stdout.find('{{ timezone_abbr }}') == -1 and
+        (ansible_os_family == "RedHat" and ansible_distribution_major_version == "6") 
+
+- name: Set /etc/sysconfig/clock for CentOS6
+  become: yes
+  always_run: yes
+  replace: 
+    dest: /etc/sysconfig/clock
+    regexp: '^ZONE.*$'
+    replace: 'ZONE="{{ timezone }}"'
+    backup: yes
+  when: result_date.stdout.find('{{ timezone_abbr }}') == -1 and
+        (ansible_os_family == "RedHat" and ansible_distribution_major_version == "6") 
+

@@ -1,0 +1,4 @@
+---
+- name: change tuned profile
+  become: yes
+  shell: tuned-adm profile custom-profile

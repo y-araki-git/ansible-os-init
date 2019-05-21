@@ -1,0 +1,43 @@
+## ユーザ定義の注意事項
+# 鍵認証の場合、公開鍵はinit/roles/init/files/users/public_keysにファイル名をユーザにして配置しkey:にユーザ名を記載してください
+# sudo権限を付与する場合、sudo:にユーザ名を記載してください
+# パスワード認証の場合、passwordは、あらかじめ下記コマンドを実行しMD5で暗号化しpassword:に記載してください
+# openssl passwd -1 パスワード
+# ユーザ定義は空行があると動きません
+
+users:
+# 管理ユーザ
+# パスワードは案件ごとに変える
+  - { name: 'admin-user', uid: 2000, group: 'admin-user', gid: 2000, sudo: 'admin-user', password: 'パスワードのハッシュ' }
+# システムユーザ
+# パスワードは案件ごとに変える
+  - { name: 'systm-user', uid: 2001, group: 'system-user', gid: 2001, password: 'パスワードのハッシュ' }
+# その他のユーザ
+# 全体でIDと鍵を統一する
+  - { name: 'user01', uid: 2002, group: 'user01', gid: 2002, sudo: 'user01', key: 'user01' }
+# JOB実行ユーザ
+# 全体でIDとパスワードを統一する
+  - { name: 'job-user', uid: 2003, group: 'job-user', gid: 2003, password: 'パスワードのハッシュ' }
+
+# package 基本インストールバージョン
+package_state: latest
+
+# OS タイムゾーン
+timezone: Asia/Tokyo
+timezone_abbr: JST
+
+# DNSサーバ
+nameserver1: ip
+nameserver2: ip
+
+# debian リポジトリサーバ
+debian_repo: ip
+
+# centos リポジトリサーバ
+centos_repo: ip
+
+# ldapサーバ
+ldapserver1: ip
+ldapserver2: ip
+# nslcd.confでdescripton指定部分を(description=   )の形で記載する
+description: (description=ALL)(description=Infra)(description={{ inventory_hostname[0:3] }})(description={{ inventory_hostname }})

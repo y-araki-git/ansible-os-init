@@ -1,0 +1,4 @@
+---
+- name: change /etc/locale.conf file 
+  become: yes
+  shell: "localectl set-locale LANG=ja_JP.utf8"

@@ -1,0 +1,25 @@
+---
+- name: disable manage /etc/hosts for debian
+  become: yes
+  lineinfile: "dest=/etc/cloud/cloud.cfg regexp='^manage_etc_hosts: true' line='manage_etc_hosts: false'"
+  when: ansible_os_family == 'Debian'
+
+- name: disable manage /etc/hosts for centos
+  become: yes
+  lineinfile:
+    dest: /etc/cloud/cloud.cfg
+    line: "manage_etc_hosts: false"
+  when: ansible_os_family == 'RedHat'
+
+- name: replace cloud.cfg for common
+  become: yes
+  lineinfile:
+    dest: /etc/cloud/cloud.cfg
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+    backrefs: yes
+  with_items:
+    - regexp: '^ - update_hostname$'
+      line: '# - update_hostname'
+    - regexp: '^ - ssh$'
+      line: '# - ssh'

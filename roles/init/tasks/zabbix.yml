@@ -1,0 +1,48 @@
+---
+- name: add /etc/yum.repos.d/zabbix.repo for CentOS7
+  become: yes
+  template: src=templates/yum_repo/zabbix.repo.j2 dest=/etc/yum.repos.d/zabbix.repo owner=root group=root mode=0644
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+
+- name:    remove mariadb-libs
+  become:  yes
+  yum:
+    name: mariadb-libs
+    state: removed
+
+- name:    install zabbix agent
+  become:  yes
+  package: name={{ item }}
+  with_items:
+    - "zabbix-agent-3.4.3"
+    - "zabbix-sender-3.4.3"
+
+- name:    update zabbix conf - Server
+  become:  yes
+  replace: dest=/etc/zabbix/zabbix_agentd.conf regexp={{ item.regexp }} replace={{ item.replace }} backup=yes
+  with_items:
+    - { regexp: '^Hostname=Zabbix server', replace: '#Hostname=Zabbix server\nHostname={{ ansible_hostname }}' }
+    - { regexp: '^# AllowRoot=0\n\n', replace: '# AllowRoot=0\nAllowRoot=1\n\n' }
+    - { regexp: '^# RefreshActiveChecks=120\n\n', replace: '# RefreshActiveChecks=120\nRefreshActiveChecks=120\n\n' }
+    - { regexp: '^# EnableRemoteCommands=0\n\n', replace: '# EnableRemoteCommands=0\nEnableRemoteCommands=1\n\n' }
+    - { regexp: '^# Timeout=3\n\n', replace: '# Timeout=3\nTimeout=3\n\n' }
+
+- name:    update zabbix conf - n00
+  become:  yes
+  replace: dest=/etc/zabbix/zabbix_agentd.conf regexp={{ item.regexp }} replace={{ item.replace }} backup=yes
+  with_items:
+    - { regexp: "^Server=.*", replace: "Server=10.4.0.39,10.4.0.40" }
+    - { regexp: "^ServerActive=.*", replace: "ServerActive=10.4.0.13" }
+  when: inventory_hostname[0:3] == "n00"
+    
+- name:    update zabbix conf - except n00
+  become:  yes
+  replace: dest=/etc/zabbix/zabbix_agentd.conf regexp={{ item.regexp }} replace={{ item.replace }} backup=yes
+  with_items:
+    - { regexp: "^Server=.*", replace: "Server=160.243.21.1" }
+    - { regexp: "^ServerActive=.*", replace: "ServerActive=10.4.0.13" }
+  when: inventory_hostname[0:3] != "n00"
+
+- name:      start and enable zabbix-agent service
+  become:    yes
+  service:   name=zabbix-agent state=restarted enabled=yes
